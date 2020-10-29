@@ -1,4 +1,4 @@
-from sklearn import svm 
+from sklearn import svm, metrics
 import pandas as PD
 import math
 
@@ -18,8 +18,10 @@ class Dataset:
         @author Junior Vitor Ramisch <junior.ramisch@gmail.com> 
     '''
 
-    def __init__(self, name, selected_feat, input_mean_on):
-        
+    def __init__(self, name, selected_feat, input_mean_on, label):
+
+        self.label = label
+
         self.dataset_slice = {
             "slice"        : [],
             "feat_amount"  : len(selected_feat), 
@@ -28,20 +30,22 @@ class Dataset:
             "dropped_feat" : [],
         }
         
-        self.training_set = PD.read_csv(DATASET_PATH + name)
+        self.dataset = PD.read_csv(DATASET_PATH + name)
 
         self.__get_dropped_features()
 
         self.__select_features()
         self.__input_mean()
+
+        self.__encode_gender()
     
     def __get_dropped_features(self):
-        for feat in self.training_set.columns:
+        for feat in self.dataset.columns:
             if not feat in self.dataset_slice["selected_feat"]:
                 self.dataset_slice["dropped_feat"].append(feat)
 
     def __select_features(self):
-        self.dataset_slice["slice"] = self.training_set.drop(self.dataset_slice["dropped_feat"], axis=1)
+        self.dataset_slice["slice"] = self.dataset.drop(self.dataset_slice["dropped_feat"], axis=1)
 
     def __input_mean(self):
         means = {}
@@ -50,6 +54,18 @@ class Dataset:
 
         for feat in means.keys():
             self.dataset_slice["slice"][feat] = self.dataset_slice["slice"][feat].fillna(means[feat])
+        
+        print(means)
+
+    def __encode_gender(self):
+        self.dataset_slice["slice"].loc[self.dataset_slice["slice"]["Sex"] == "male", "Sex"] = 0
+        self.dataset_slice["slice"].loc[self.dataset_slice["slice"]["Sex"] == "female", "Sex"] = 1
+        
+    def get_labels(self):
+        return self.dataset[self.label]
+
+    def get_features(self):
+        return self.dataset_slice["slice"]
 
     def report(self):
         print("Amount of fetures: {}".format(self.dataset_slice["feat_amount"]))
@@ -69,13 +85,33 @@ class SVMModel:
     '''
 
     def __init__(self):
-        self.features = ["Survived", "Pclass", "Sex", "Age", "Fare"]
-        self.input_mean_on = ["Age"]
-        self.training_set = Dataset("train.csv", self.features, self.input_mean_on)
-        self.training_set.report()
+        self.label = "Survived"
+        self.features = ["Pclass", "Sex", "Age", "Fare"]
+        self.input_mean_on = ["Age", "Fare"]
+        self.training_set = Dataset("train.csv", self.features, self.input_mean_on, self.label)
+        self.testing_set = Dataset("test.csv", self.features, self.input_mean_on, self.label)
+
+        self.model = svm.SVC(kernel='linear')
+
+        self.train()
+        self.test()
         
     def train(self):
+        train_features = self.training_set.get_features()
+        train_labels = self.training_set.get_labels()
+
+        print("Features lenght: ", len(train_features))
+        print("Labels lenght: ", len(train_labels))
+
+        self.model.fit(train_features, train_labels)
+
+    def test(self):
+        self.test_features = self.testing_set.get_features()
+    
+        self.predictions = self.model.predict(self.test_features)
+        
+    def write_output(self):
         pass
 
-    def test():
-        print(svm.__doc__)
+
+
