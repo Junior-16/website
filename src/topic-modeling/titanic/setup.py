@@ -18,11 +18,11 @@ class Dataset:
         @author Junior Vitor Ramisch <junior.ramisch@gmail.com> 
     '''
 
-    def __init__(self, name, selected_feat, input_mean_on, label):
+    def __init__(self, name, selected_feat, input_mean_on):
 
-        self.label = label
+        self.label = "Survived"
 
-        self.dataset_slice = {
+        self.dataset_info = {
             "slice"        : [],
             "feat_amount"  : len(selected_feat), 
             "input_mean_on": input_mean_on,
@@ -37,42 +37,56 @@ class Dataset:
         self.__select_features()
         self.__input_mean()
 
-        self.__encode_gender()
+        self.__transform_gender_2continuos()
+        self.__transform_embarked_2continuos()
+
+        self.__fill_empty()
     
     def __get_dropped_features(self):
         for feat in self.dataset.columns:
-            if not feat in self.dataset_slice["selected_feat"]:
-                self.dataset_slice["dropped_feat"].append(feat)
+            if not feat in self.dataset_info["selected_feat"]:
+                self.dataset_info["dropped_feat"].append(feat)
 
     def __select_features(self):
-        self.dataset_slice["slice"] = self.dataset.drop(self.dataset_slice["dropped_feat"], axis=1)
+        self.dataset_info["slice"] = self.dataset.drop(self.dataset_info["dropped_feat"], axis=1)
 
     def __input_mean(self):
         means = {}
-        for feat in self.dataset_slice["input_mean_on"]:
-            means[feat] = math.floor(self.dataset_slice["slice"][feat].mean())
+        for feat in self.dataset_info["input_mean_on"]:
+            means[feat] = math.floor(self.dataset_info["slice"][feat].mean())
 
         for feat in means.keys():
-            self.dataset_slice["slice"][feat] = self.dataset_slice["slice"][feat].fillna(means[feat])
+            self.dataset_info["slice"][feat] = self.dataset_info["slice"][feat].fillna(means[feat])
         
         print(means)
 
-    def __encode_gender(self):
-        self.dataset_slice["slice"].loc[self.dataset_slice["slice"]["Sex"] == "male", "Sex"] = 0
-        self.dataset_slice["slice"].loc[self.dataset_slice["slice"]["Sex"] == "female", "Sex"] = 1
-        
+    def __transform_gender_2continuos(self):
+        self.dataset_info["slice"].loc[self.dataset_info["slice"]["Sex"] == "male", "Sex"] = 0
+        self.dataset_info["slice"].loc[self.dataset_info["slice"]["Sex"] == "female", "Sex"] = 1
+
+    def __transform_embarked_2continuos(self):
+        self.dataset_info["slice"].loc[self.dataset_info["slice"]["Embarked"] == "S", "Embarked"] = 0
+        self.dataset_info["slice"].loc[self.dataset_info["slice"]["Embarked"] == "C", "Embarked"] = 1
+        self.dataset_info["slice"].loc[self.dataset_info["slice"]["Embarked"] == "Q", "Embarked"] = 2
+
+    def __fill_empty(self):
+        self.dataset_info["slice"]["Embarked"] = self.dataset_info["slice"]["Embarked"].fillna(0)
+
     def get_labels(self):
         return self.dataset[self.label]
 
     def get_features(self):
-        return self.dataset_slice["slice"]
+        return self.dataset_info["slice"]
+
+    def get_column(self, name):
+        return self.dataset[name]
 
     def report(self):
-        print("Amount of fetures: {}".format(self.dataset_slice["feat_amount"]))
+        print("Amount of fetures: {}".format(self.dataset_info["feat_amount"]))
         print("Selected features: ")
-        for feat in self.dataset_slice["selected_feat"]: print("\t - {}".format(feat))
+        for feat in self.dataset_info["selected_feat"]: print("\t - {}".format(feat))
         print("Dropped features: ")
-        for feat in self.dataset_slice["dropped_feat"]: print("\t - {}".format(feat))
+        for feat in self.dataset_info["dropped_feat"]: print("\t - {}".format(feat))
 
 
 class SVMModel:
@@ -85,17 +99,18 @@ class SVMModel:
     '''
 
     def __init__(self):
-        self.label = "Survived"
-        self.features = ["Pclass", "Sex", "Age", "Fare"]
+        self.features = ["Pclass", "Sex", "Age", "Fare", "Embarked"]
         self.input_mean_on = ["Age", "Fare"]
-        self.training_set = Dataset("train.csv", self.features, self.input_mean_on, self.label)
-        self.testing_set = Dataset("test.csv", self.features, self.input_mean_on, self.label)
+        self.fill_empty_on = ["Embarked"] 
+        self.training_set = Dataset("train.csv", self.features, self.input_mean_on)
+        self.testing_set = Dataset("test.csv", self.features, self.input_mean_on)
 
         self.model = svm.SVC(kernel='linear')
 
         self.train()
         self.test()
-        
+        self.write_output()
+
     def train(self):
         train_features = self.training_set.get_features()
         train_labels = self.training_set.get_labels()
@@ -107,11 +122,16 @@ class SVMModel:
 
     def test(self):
         self.test_features = self.testing_set.get_features()
-    
         self.predictions = self.model.predict(self.test_features)
         
     def write_output(self):
-        pass
+        output = open("../../../datasets/titanic/output.csv", "w")
+        print("PassengerId,Survived", file=output)
+        
+        passengerId = self.testing_set.get_column("PassengerId")
 
-
+        for i in range(len(passengerId)):
+            print(passengerId[i], "," , self.predictions[i], file=output)
+        
+        output.close()
 
