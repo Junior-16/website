@@ -1,5 +1,6 @@
 from sklearn import svm
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 import pandas as PD
 import math
 
@@ -145,11 +146,21 @@ class SVMModel(Model):
         self.test()
         self.write_output()
 
-class RandomForestModel(Model):
+class DecisionTreeModel(Model):
     def __init__(self, training_set, testing_set):
         super().__init__(training_set, testing_set)
 
         self.model = DecisionTreeClassifier()
+
+        self.train()
+        self.test()
+        self.write_output()
+
+class RandomForestModel(Model):
+    def __init__(self, training_set, testing_set):
+        super().__init__(training_set, testing_set)
+
+        self.model = RandomForestClassifier()
 
         self.train()
         self.test()

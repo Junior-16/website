@@ -3,6 +3,9 @@ from setup import *
 def run_svm(training_set, testing_set):    
     svm_model = SVMModel(training_set, testing_set)
 
+def run_decision_tree(training_set, testing_set):
+    dt = DecisionTreeModel(training_set, testing_set)
+
 def run_random_forest(training_set, testing_set):
     rf = RandomForestModel(training_set, testing_set)
 
@@ -13,4 +16,5 @@ if __name__ == "__main__":
     testing_set = Dataset("test.csv", features, input_mean_on)
     
     # run_svm(training_set, testing_set)
+    # run_random_forest(training_set, testing_set)
     run_random_forest(training_set, testing_set)
