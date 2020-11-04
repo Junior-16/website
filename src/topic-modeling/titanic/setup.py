@@ -40,8 +40,6 @@ class Dataset:
         self.__transform_gender_2continuos()
         self.__transform_embarked_2continuos()
 
-        self.__fill_empty()
-    
     def __get_dropped_features(self):
         for feat in self.dataset.columns:
             if not feat in self.dataset_info["selected_feat"]:
@@ -65,12 +63,19 @@ class Dataset:
         self.dataset_info["slice"].loc[self.dataset_info["slice"]["Sex"] == "female", "Sex"] = 1
 
     def __transform_embarked_2continuos(self):
-        self.dataset_info["slice"].loc[self.dataset_info["slice"]["Embarked"] == "S", "Embarked"] = 0
-        self.dataset_info["slice"].loc[self.dataset_info["slice"]["Embarked"] == "C", "Embarked"] = 1
-        self.dataset_info["slice"].loc[self.dataset_info["slice"]["Embarked"] == "Q", "Embarked"] = 2
+        # create new columns
+        self.dataset_info["slice"]["S"] = 0
+        self.dataset_info["slice"]["C"] = 0
+        self.dataset_info["slice"]["Q"] = 0
 
-    def __fill_empty(self):
-        self.dataset_info["slice"]["Embarked"] = self.dataset_info["slice"]["Embarked"].fillna(0)
+        # fill with data
+        self.dataset_info["slice"].loc[self.dataset_info["slice"]["Embarked"] == "S", "S"] = 1
+        self.dataset_info["slice"].loc[self.dataset_info["slice"]["Embarked"] == "C", "C"] = 1
+        self.dataset_info["slice"].loc[self.dataset_info["slice"]["Embarked"] == "Q", "Q"] = 1
+
+        print(self.dataset_info["slice"])
+        del self.dataset_info["slice"]["Embarked"]
+        print(self.dataset_info["slice"])
 
     def get_labels(self):
         return self.dataset[self.label]
@@ -88,20 +93,18 @@ class Dataset:
         print("Dropped features: ")
         for feat in self.dataset_info["dropped_feat"]: print("\t - {}".format(feat))
 
-
 class SVMModel:
 
     '''
         TODO: Improve this shity description
 
         This abstraction uses Suport Vector Machine
-        to model the datasets.
+        to model the dataset.
     '''
 
     def __init__(self):
         self.features = ["Pclass", "Sex", "Age", "Fare", "Embarked"]
         self.input_mean_on = ["Age", "Fare"]
-        self.fill_empty_on = ["Embarked"] 
         self.training_set = Dataset("train.csv", self.features, self.input_mean_on)
         self.testing_set = Dataset("test.csv", self.features, self.input_mean_on)
 
@@ -114,6 +117,9 @@ class SVMModel:
     def train(self):
         train_features = self.training_set.get_features()
         train_labels = self.training_set.get_labels()
+
+        print(train_features)
+        print(train_labels)
 
         print("Features lenght: ", len(train_features))
         print("Labels lenght: ", len(train_labels))
@@ -131,7 +137,7 @@ class SVMModel:
         passengerId = self.testing_set.get_column("PassengerId")
 
         for i in range(len(passengerId)):
-            print(passengerId[i], "," , self.predictions[i], file=output)
+            print("{},{}".format(passengerId[i], self.predictions[i]), file=output)
         
         output.close()
 
