@@ -1,20 +1,23 @@
 from setup import *
 
-def run_svm(training_set, testing_set):    
-    svm_model = SVMModel(training_set, testing_set)
+def run_svm(dataset):    
+    svm_model = SVMModel(dataset)
 
-def run_decision_tree(training_set, testing_set):
-    dt = DecisionTreeModel(training_set, testing_set)
+def run_decision_tree(dataset):
+    dt = DecisionTreeModel(dataset)
 
-def run_random_forest(training_set, testing_set):
-    rf = RandomForestModel(training_set, testing_set)
+def run_random_forest(dataset):
+    rf = RandomForestModel(dataset)
 
 if __name__ == "__main__":
     features = ["Pclass", "Sex", "Age", "Fare", "Embarked"]
-    input_mean_on = ["Age", "Fare"]
-    training_set = Dataset("train.csv", features, input_mean_on)
-    testing_set = Dataset("test.csv", features, input_mean_on)
-    
-    # run_svm(training_set, testing_set)
-    # run_random_forest(training_set, testing_set)
-    run_random_forest(training_set, testing_set)
+    dataset = Dataset(features)
+    # print("Training set")
+    # print(dataset.get_train_labels())
+    # print(dataset.get_train_features())
+
+    # print("Testing set")
+    # print(dataset.get_test_features())
+    # run_svm(dataset)
+    # run_decision_tree(dataset)
+    run_random_forest(dataset)
