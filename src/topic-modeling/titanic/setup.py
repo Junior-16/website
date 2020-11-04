@@ -1,4 +1,5 @@
-from sklearn import svm, metrics
+from sklearn import svm
+from sklearn.tree import DecisionTreeClassifier
 import pandas as PD
 import math
 
@@ -93,43 +94,28 @@ class Dataset:
         print("Dropped features: ")
         for feat in self.dataset_info["dropped_feat"]: print("\t - {}".format(feat))
 
-class SVMModel:
-
-    '''
-        TODO: Improve this shity description
-
-        This abstraction uses Suport Vector Machine
-        to model the dataset.
-    '''
-
-    def __init__(self):
-        self.features = ["Pclass", "Sex", "Age", "Fare", "Embarked"]
-        self.input_mean_on = ["Age", "Fare"]
-        self.training_set = Dataset("train.csv", self.features, self.input_mean_on)
-        self.testing_set = Dataset("test.csv", self.features, self.input_mean_on)
-
-        self.model = svm.SVC(kernel='linear')
-
-        self.train()
-        self.test()
-        self.write_output()
+class Model:
+    def __init__(self, train_dataset, test_dataset):
+        self.training_set = train_dataset
+        self.testing_set = test_dataset
+        self.model = None
 
     def train(self):
         train_features = self.training_set.get_features()
         train_labels = self.training_set.get_labels()
 
-        print(train_features)
-        print(train_labels)
+        # print(train_features)
+        # print(train_labels)
 
-        print("Features lenght: ", len(train_features))
-        print("Labels lenght: ", len(train_labels))
+        # print("Features lenght: ", len(train_features))
+        # print("Labels lenght: ", len(train_labels))
 
         self.model.fit(train_features, train_labels)
 
     def test(self):
         self.test_features = self.testing_set.get_features()
         self.predictions = self.model.predict(self.test_features)
-        
+
     def write_output(self):
         output = open("../../../datasets/titanic/output.csv", "w")
         print("PassengerId,Survived", file=output)
@@ -141,3 +127,30 @@ class SVMModel:
         
         output.close()
 
+class SVMModel(Model):
+
+    '''
+        TODO: Improve this shity description
+
+        This abstraction uses Suport Vector Machine
+        to model the dataset.
+    '''
+
+    def __init__(self, train_dataset, test_dataset):
+        super().__init__(train_dataset, test_dataset)
+
+        self.model = svm.SVC(kernel='linear')
+
+        self.train()
+        self.test()
+        self.write_output()
+
+class RandomForestModel(Model):
+    def __init__(self, training_set, testing_set):
+        super().__init__(training_set, testing_set)
+
+        self.model = DecisionTreeClassifier()
+
+        self.train()
+        self.test()
+        self.write_output()
