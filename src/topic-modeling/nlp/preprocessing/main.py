@@ -2,14 +2,31 @@ from preprocessing import *
 
 if __name__ == "__main__":
     
+    output = open("output.txt", "w+")
     document_set = get_set("news.csv")
     features_names = document_set.columns
 
     serie = document_set["title"]
-    for value in serie:
-        tokens = get_tokens(value)
-        stop_words_dropped = drop_stop_words(tokens)
-        print(stop_words_dropped)
+
+    documents = document_set["title"]+" " +" "+document_set["description"]+" "+document_set["text"]
+    
+    print(documents)
+
+    for doc in documents.items():
+        title = doc[1]
+        # description = doc[2]
+        # text = doc[3]
+        
+        title_tokens = get_tokens(title)
+        # desc_tokens = get_tokens(description)
+        # text_tokens = get_tokens(text)
+
+        print(title, file=output.encode("utf-8"))
+        # print(title_tokens, file=output)
+
+
+        # stop_words_dropped = drop_stop_words(tokens)
+        # print(stop_words_dropped)
     
     # print(dir(tokens[0]))
     # for f in document_set:
