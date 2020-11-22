@@ -2,39 +2,59 @@ from preprocessing import *
 
 if __name__ == "__main__":
     
-    output = open("output.txt", "w+")
+    original_documents = {
+        "title": open("output/title.csv", "w+"),
+        "description": open("output/description.csv", "w+"),
+        "text": open("output/text.csv", "w+")
+    }
+
+    output_tokens = {
+        "title": open("output/tokens_title.csv", "w+"),
+        "description": open("output/tokens_description.csv", "w+"),
+        "text": open("output/tokens_text.csv", "w+")
+    }
+
+    output_stop_words = {
+        "title": open("output/stop_words_title.csv", "w+"),
+        "description": open("output/stop_words_description.csv", "w+"),
+        "text": open("output/stop_words_text.csv", "w+")
+    }
+
+    output_lemmas = {
+        "title": open("output/lemmas_title.csv", "w+"),
+        "description": open("output/lemmas_description.csv", "w+"),
+        "text": open("output/lemmas_text.csv", "w+")
+    }
+
     document_set = get_set("news.csv")
-    features_names = document_set.columns
+    document_features = document_set.columns
 
-    serie = document_set["title"]
+    titles = []
+    texts = []
+    descriptions = []
 
-    documents = document_set["title"]+" " +" "+document_set["description"]+" "+document_set["text"]
-    
-    print(documents)
+    for feat in document_features:
 
-    for doc in documents.items():
-        title = doc[1]
-        # description = doc[2]
-        # text = doc[3]
-        
-        title_tokens = get_tokens(title)
-        # desc_tokens = get_tokens(description)
-        # text_tokens = get_tokens(text)
+        for doc in document_set[feat].items():
 
-        print(title, file=output.encode("utf-8"))
-        # print(title_tokens, file=output)
+            # Writes the original document just for comparing
+            print(doc[1], file=original_documents[feat])
 
+            # Extracts tokens and write in a feature specific file
+            tokens = tokenize(doc[1])
+            print(tokens, file=output_tokens[feat])
 
-        # stop_words_dropped = drop_stop_words(tokens)
-        # print(stop_words_dropped)
-    
-    # print(dir(tokens[0]))
-    # for f in document_set:
-        
-    #     for index, value in serie:
-    #         print(value.encode("utf-8"))
+            # Removes stop word and write in a feature specific file
+            no_stop_words = drop_stop_words(tokens)
+            print(no_stop_words, file=output_stop_words[feat])
 
+            lemmas = lemmatize(no_stop_words)
+            print(lemmas, file=output_lemmas[feat])
 
+    for output_file in original_documents.values(): output_file.close()
+    for output_file in output_tokens.values(): output_file.close()
+    for output_file in output_stop_words.values(): output_file.close()
+    for output_file in output_lemmas.values(): output_file.close()
 
 # "title": 'More vital now: Gay-straight alliances go virtual during coronavirus pandemic',
 # "description": "Lily Overacker and Laurell Pallot start each gay-straight alliance meeting with everyone introducing themselves, saying their pronouns and sharing highs and lows of the week.",
