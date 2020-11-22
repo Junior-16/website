@@ -1,1 +1,5 @@
 numpy
+pandas
+spacy
+gensim
+nltk
