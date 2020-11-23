@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 import spacy
 from spacy.util import compile_infix_regex
@@ -19,7 +18,7 @@ from spacy.lookups import Lookups
 """
 
 DATA_PATH = "../../../../datasets/covid-news/"
-N_ROWS=1
+N_ROWS=50
 
 nlp_english = spacy.load("en_core_web_md")
 
