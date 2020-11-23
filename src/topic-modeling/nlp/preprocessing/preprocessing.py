@@ -38,7 +38,7 @@ def create_custom_tokenizer():
                                     token_match=nlp_english.tokenizer.token_match,
                                     rules=nlp_english.Defaults.tokenizer_exceptions)
 
-def get_set(name):
+def get_document_set(name):
     create_custom_tokenizer()
 
     document_set = pd.read_csv(filepath_or_buffer=DATA_PATH + name,
